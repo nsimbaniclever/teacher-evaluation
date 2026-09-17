@@ -667,6 +667,9 @@ button:disabled {
     border-left-color: #ef4444;
     background: rgba(239, 68, 68, 0.08);
 }
+#erro p {
+    white-space: pre-line;
+}
 
 /* ============================================ */
 /* MODAL DE AJUDA                                */

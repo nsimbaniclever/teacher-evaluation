@@ -1,14 +1,17 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import pandas as pd
 import numpy as np
 from scipy import stats
 import json
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-# Configuração padrão (caso o frontend não envie nada)
+# ============================================
+# CONFIGURAÇÃO PADRÃO
+# ============================================
 CONFIG_PADRAO = {
     "escala": 10,
     "mediaMin": 8.0,
@@ -26,10 +29,28 @@ CONFIG_PADRAO = {
     "idDemitir": -0.5,
 }
 
+
+# ============================================
+# SERVIR FICHEIROS ESTÁTICOS (HTML/CSS/JS)
+# ============================================
+@app.route("/<path:filename>")
+def servir_ficheiros(filename):
+    return send_from_directory(
+        os.path.dirname(os.path.abspath(__file__)), filename
+    )
+
+
+# ============================================
+# ROTA RAIZ
+# ============================================
 @app.route("/")
 def home():
     return jsonify({"mensagem": "API de Avaliação de Professor está a funcionar!"})
 
+
+# ============================================
+# ROTA PRINCIPAL — AVALIAR
+# ============================================
 @app.route("/avaliar", methods=["POST"])
 def avaliar():
     # Verificar se o ficheiro foi enviado
@@ -43,7 +64,6 @@ def avaliar():
     if config_str:
         try:
             config = json.loads(config_str)
-            # Preencher com valores padrão se faltar algum
             for chave, valor in CONFIG_PADRAO.items():
                 if chave not in config:
                     config[chave] = valor
@@ -71,7 +91,35 @@ def avaliar():
     if n == 0:
         return jsonify({"erro": "Nenhuma nota válida encontrada"}), 400
 
-    # Medidas de tendência central
+    # ==========================================
+    # VALIDAÇÃO: NOTAS vs ESCALA
+    # ==========================================
+    nota_min = float(np.min(notas))
+    nota_max = float(np.max(notas))
+
+    # Notas negativas
+    if nota_min < 0:
+        return jsonify({
+            "erro": f"❌ Foram encontradas notas negativas.\n\nNota mínima: {nota_min}\n\nAs notas não podem ser negativas. Corrija o Excel."
+        }), 400
+
+    # Notas acima da escala
+    if nota_max > escala:
+        return jsonify({
+            "erro": (
+                f"❌ As notas do Excel não são compatíveis com a escala escolhida.\n\n"
+                f"Escala escolhida: 0-{escala}\n"
+                f"Nota mínima encontrada: {nota_min}\n"
+                f"Nota máxima encontrada: {nota_max}\n\n"
+                f"Sugestões:\n"
+                f"1. Altere a escala na Página 1 para '0-{int(nota_max)}' ou superior.\n"
+                f"2. Ou ajuste as notas no Excel para a escala 0-{escala}."
+            )
+        }), 400
+
+    # ==========================================
+    # MEDIDAS DE TENDÊNCIA CENTRAL
+    # ==========================================
     media = float(np.mean(notas))
     mediana = float(np.median(notas))
 
@@ -88,7 +136,9 @@ def avaliar():
     else:
         tipo_moda = "multimodal"
 
-    # Medidas de dispersão
+    # ==========================================
+    # MEDIDAS DE DISPERSÃO
+    # ==========================================
     amplitude = float(np.max(notas) - np.min(notas))
     q1 = float(np.percentile(notas, 25))
     q2 = float(np.percentile(notas, 50))
@@ -97,28 +147,42 @@ def avaliar():
     desvio = float(np.std(notas, ddof=1))
     cv = float((desvio / media) * 100) if media != 0 else 0
 
-    # Assimetria e curtose
-    as_pearson = float(stats.skew(notas, bias=False))
-    curtose = float(stats.kurtosis(notas, bias=False))
+    # ==========================================
+    # ASSIMETRIA E CURTOSE (com tratamento de erro)
+    # ==========================================
+    try:
+        as_pearson = float(stats.skew(notas, bias=False))
+    except Exception:
+        as_pearson = 0.0
+
+    try:
+        curtose = float(stats.kurtosis(notas, bias=False))
+    except Exception:
+        curtose = 0.0
 
     # Assimetria de Bowley
     if (q3 - q1) != 0:
         bowley = float(((q3 - q2) - (q2 - q1)) / (q3 - q1))
     else:
-        bowley = 0
+        bowley = 0.0
 
-    # Outliers (Tukey)
+    # ==========================================
+    # OUTLIERS (Tukey)
+    # ==========================================
     limite_inf = q1 - 1.5 * iqr
     limite_sup = q3 + 1.5 * iqr
     outliers = notas[(notas < limite_inf) | (notas > limite_sup)].tolist()
 
-    # Taxa de aprovação (nota >= 10 numa escala de 0-10)
-    # Ajustar conforme a escala
-    nota_aprovacao = escala / 2  # 50% da escala (ex: 5 numa escala de 10)
+    # ==========================================
+    # TAXA DE APROVAÇÃO
+    # ==========================================
+    nota_aprovacao = escala / 2
     aprovados = int(np.sum(notas >= nota_aprovacao))
     taxa_aprovacao = float((aprovados / n) * 100) if n > 0 else 0
 
-    # Histograma: distribuição por classes (ajustado à escala)
+    # ==========================================
+    # HISTOGRAMA
+    # ==========================================
     num_classes = 5
     largura = escala / num_classes
     bins = [i * largura for i in range(num_classes + 1)]
@@ -127,23 +191,25 @@ def avaliar():
     histograma = []
     for i in range(num_classes):
         if i == num_classes - 1:
-            contagem = int(np.sum((notas >= bins[i]) & (notas <= bins[i+1])))
+            contagem = int(np.sum((notas >= bins[i]) & (notas <= bins[i + 1])))
         else:
-            contagem = int(np.sum((notas >= bins[i]) & (notas < bins[i+1])))
+            contagem = int(np.sum((notas >= bins[i]) & (notas < bins[i + 1])))
         histograma.append(contagem)
 
-    # Boxplot
+    # ==========================================
+    # BOXPLOT
+    # ==========================================
     boxplot = {
         "min": float(np.min(notas)),
         "q1": q1,
         "mediana": q2,
         "q3": q3,
         "max": float(np.max(notas)),
-        "outliers": outliers
+        "outliers": outliers,
     }
 
     # ==========================================
-    # ÍNDICE DE DESEMPENHO (ID) — com pesos
+    # ÍNDICE DE DESEMPENHO (ID)
     # ==========================================
     pesos = {
         "media": 2,
@@ -254,7 +320,7 @@ def avaliar():
     # Índice final
     id_final = pontos / total_pesos if total_pesos != 0 else 0
 
-    # Decisão com base nas condições do diretor
+    # Decisão
     if id_final >= config["idManter"]:
         decisao = "Manter"
     elif id_final >= config["idPlano"]:
@@ -264,7 +330,9 @@ def avaliar():
     else:
         decisao = "Demitir"
 
-    # Resposta
+    # ==========================================
+    # RESPOSTA
+    # ==========================================
     return jsonify({
         "n": n,
         "escala": escala,
@@ -287,17 +355,20 @@ def avaliar():
         "aprovados": aprovados,
         "histograma": {
             "labels": labels,
-            "valores": histograma
+            "valores": histograma,
         },
         "boxplot": boxplot,
         "id": round(id_final, 2),
         "decisao": decisao,
         "pontos": pontos,
         "total_pesos": total_pesos,
-        "config": config
+        "config": config,
     })
 
+
+# ============================================
+# INICIAR O SERVIDOR (LOCAL)
+# ============================================
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
