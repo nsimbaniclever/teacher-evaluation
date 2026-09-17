@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise — Avaliação de Professor</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        #teste{
+            color: #fbbf24;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas-fundo"></canvas>
+    <div id="simbolos-flutuantes"></div>
+
+    <header>
+        <div class="logo-teoscript">
+            <div class="logo-icone">T</div>
+            <div class="logo-texto">
+                <div class="logo-titulo">
+                    <span class="logo-teo">Teo</span><span class="logo-script">Script</span>
+                    <span id = "teste"> Clever.B</span>
+                </div>
+                <span class="logo-subtitulo">Teoser . Script</span>
+            </div>
+        </div>
+        <h1>📊 Avaliação de Professor</h1>
+        <p>Carregue o ficheiro Excel com as notas da turma e obtenha uma análise completa.</p>
+    </header>
+
+    <main>
+
+        <section class="condicoes-ativas">
+            <h2>⚙️ Condições Ativas</h2>
+            <div id="resumo-condicoes"></div>
+            <a href="index.html" class="btn-alterar">← Alterar Condições</a>
+        </section>
+
+        <section class="upload-section">
+            <label for="ficheiro" class="upload-label">
+                📁 Escolher ficheiro Excel
+            </label>
+            <input type="file" id="ficheiro" accept=".xlsx, .xls">
+            <span id="nome-ficheiro" class="nome-ficheiro">Nenhum ficheiro selecionado</span>
+            <button id="btn-avaliar">Analisar</button>
+        </section>
+
+        <section id="loading" class="hidden">
+            <p>⏳ A processar os dados...</p>
+        </section>
+
+        <section id="erro" class="hidden">
+            <p id="erro-mensagem"></p>
+        </section>
+
+        <section id="resultados" class="hidden">
+
+            <div id="decisao-box" class="decisao-box">
+                <h2 id="decisao-titulo"></h2>
+                <p id="decisao-id"></p>
+                <p id="decisao-justificacao"></p>
+            </div>
+
+            <h2>📝 Resumo dos Resultados</h2>
+            <div id="resumo"></div>
+
+            <h2>📋 Tabela de Medidas</h2>
+            <table id="tabela-medidas">
+                <thead>
+                    <tr>
+                        <th>Medida</th>
+                        <th>Valor</th>
+                        <th>Interpretação</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <h2>📈 Gráficos</h2>
+            <div class="graficos">
+                <div id="histograma"></div>
+                <div id="boxplot"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Projeto de Avaliação Estatística — Flask + HTML + CSS + JS</p>
+    </footer>
+
+    <script src="analise.js"></script>
+</body>
+</html>

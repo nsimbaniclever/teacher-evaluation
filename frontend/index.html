@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuração — Avaliação de Professor</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #teste{
+            color: #fbbf24;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas-fundo"></canvas>
+    <div id="simbolos-flutuantes"></div>
+
+    <header>
+        <div class="logo-teoscript">
+            <div class="logo-icone">T</div>
+            <div class="logo-texto">
+                <div class="logo-titulo">
+                    <span class="logo-teo">Teo</span><span class="logo-script">Script</span>
+                    <span id = "teste"> Clever.B</span>
+                </div>
+                <span class="logo-subtitulo">Teoser . Script</span>
+            </div>
+        </div>
+        <h1>⚙️ Configuração da Análise</h1>
+        <p>Defina as condições antes de analisar o desempenho do professor.</p>
+    </header>
+
+    <main>
+
+        <section class="config-section">
+
+            <div class="config-group">
+                <h3>Escala de Notas</h3>
+                <div class="escala-opcoes">
+                    <input type="radio" name="escala" id="escala-5" value="5">
+                    <label for="escala-5">0-5</label>
+
+                    <input type="radio" name="escala" id="escala-10" value="10" checked>
+                    <label for="escala-10">0-10</label>
+
+                    <input type="radio" name="escala" id="escala-20" value="20">
+                    <label for="escala-20">0-20</label>
+
+                    <input type="radio" name="escala" id="escala-100" value="100">
+                    <label for="escala-100">0-100</label>
+                </div>
+            </div>
+
+            <div class="config-group">
+                <h3>Meta da Escola</h3>
+
+                <div class="config-item">
+                    <label for="media-min">Média mínima:</label>
+                    <input type="number" id="media-min" value="8" min="0" max="10" step="0.1">
+                    <span class="ajuda" data-explicacao="media-min">?</span>
+                </div>
+
+                <div class="config-item">
+                    <label for="mediana-min">Mediana mínima:</label>
+                    <input type="number" id="mediana-min" value="7.5" min="0" max="10" step="0.1">
+                    <span class="ajuda" data-explicacao="mediana-min">?</span>
+                </div>
+
+                <div class="config-item">
+                    <label for="taxa-aprovacao">Taxa de aprovação (%):</label>
+                    <input type="number" id="taxa-aprovacao" value="80" min="0" max="100" step="1">
+                    <span class="ajuda" data-explicacao="taxa-aprovacao">?</span>
+                </div>
+            </div>
+
+            <div class="config-group">
+                <h3>Tolerância à Dispersão</h3>
+
+                <div class="config-item">
+                    <label for="amplitude-max">Amplitude máxima:</label>
+                    <input type="number" id="amplitude-max" value="6" min="0" max="10" step="0.1">
+                    <span class="ajuda" data-explicacao="amplitude-max">?</span>
+                </div>
+
+                <div class="config-item">
+                    <label for="iqr-max">IQR máximo:</label>
+                    <input type="number" id="iqr-max" value="4" min="0" max="10" step="0.1">
+                    <span class="ajuda" data-explicacao="iqr-max">?</span>
+                </div>
+
+                <div class="config-item">
+                    <label for="desvio-max">Desvio padrão máximo:</label>
+                    <input type="number" id="desvio-max" value="2" min="0" max="10" step="0.1">
+                    <span class="ajuda" data-explicacao="desvio-max">?</span>
+                </div>
+
+                <div class="config-item">
+                    <label for="cv-max">CV máximo (%):</label>
+                    <input type="number" id="cv-max" value="30" min="0" max="100" step="1">
+                    <span class="ajuda" data-explicacao="cv-max">?</span>
+                </div>
+            </div>
+
+            <div class="config-group">
+                <h3>Tolerância à Forma</h3>
+
+                <div class="config-item">
+                    <label for="assimetria-max">Assimetria máxima:</label>
+                    <input type="number" id="assimetria-max" value="0.5" min="0" max="3" step="0.1">
+                    <span class="ajuda" data-explicacao="assimetria-max">?</span>
+                </div>
+
+                <div class="config-item">
+                    <label for="curtose-max">Curtose máxima:</label>
+                    <input type="number" id="curtose-max" value="1.0" min="0" max="5" step="0.1">
+                    <span class="ajuda" data-explicacao="curtose-max">?</span>
+                </div>
+            </div>
+
+            <div class="config-group">
+                <h3>Outliers</h3>
+
+                <div class="config-item">
+                    <label for="outliers-max">Outliers máximos:</label>
+                    <input type="number" id="outliers-max" value="2" min="0" max="50" step="1">
+                    <span class="ajuda" data-explicacao="outliers-max">?</span>
+                </div>
+            </div>
+
+            <div class="config-group">
+                <h3>Decisão</h3>
+
+                <div class="config-item">
+                    <label for="id-manter">ID mínimo para manter:</label>
+                    <input type="number" id="id-manter" value="0.5" min="-1" max="1" step="0.1">
+                    <span class="ajuda" data-explicacao="id-manter">?</span>
+                </div>
+
+                <div class="config-item">
+                    <label for="id-plano">ID mínimo para plano:</label>
+                    <input type="number" id="id-plano" value="0.0" min="-1" max="1" step="0.1">
+                    <span class="ajuda" data-explicacao="id-plano">?</span>
+                </div>
+
+                <div class="config-item">
+                    <label for="id-demitir">ID mínimo para demitir:</label>
+                    <input type="number" id="id-demitir" value="-0.5" min="-1" max="1" step="0.1">
+                    <span class="ajuda" data-explicacao="id-demitir">?</span>
+                </div>
+            </div>
+
+            <button id="btn-avancar">Guardar Condições e Avançar →</button>
+
+        </section>
+
+    </main>
+
+    <div id="modal-ajuda" class="modal hidden">
+        <div class="modal-conteudo">
+            <span class="modal-fechar" id="modal-fechar">&times;</span>
+            <h3 id="modal-titulo"></h3>
+            <p id="modal-texto"></p>
+        </div>
+    </div>
+
+    <footer>
+        <p>Projeto de Avaliação Estatística — By Manuel Oséias</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
